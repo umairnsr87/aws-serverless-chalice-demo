@@ -1,11 +1,35 @@
 from chalice import Chalice
 
+# defining the name of our chalice app
 app = Chalice(app_name='demo')
 
+# Defining the logging
+import logging
+app.log.setLevel(logging.DEBUG)
 
-@app.route('/')
-def index():
-    return {'hello': 'world'}
+# Lambda Function:1
+@app.lambda_function(name="index")
+def index(event,context):
+    app.log.debug("Index first with event is {} and context is {}".format(event, context))
+    from chalicelib.helper import invoke_lambda_function
+    """
+    Invocation of another lambda function
+    """
+
+    response = invoke_lambda_function(function_name='lambda-chalice-first',
+                                      invocation_type='RequestResponse',#'Event': For ayncronous invocation
+                                      data={"hello":"world"})
+
+    return {'response': response}
+
+
+# Lambda Function:2
+@app.lambda_function(name="lambda-chalice-first")
+def lambda_first(event,context):
+    app.log.debug("Lambda first with event is {} and context is {}".format(event,context))
+    return {'lambda-chalice-first': 'Hello! I am lambda-chalice-first'}
+
+
 
 
 # The view function above will return {"hello": "world"}
